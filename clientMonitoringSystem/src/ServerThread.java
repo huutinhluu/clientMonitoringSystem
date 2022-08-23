@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -6,6 +7,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
 
 public class ServerThread implements Runnable {
@@ -15,6 +17,7 @@ public class ServerThread implements Runnable {
     private BufferedReader is;
     private BufferedWriter os;
     private boolean isClosed;
+    public static JTextArea jTextarea;
 
     public BufferedReader getIs() {
         return is;
@@ -28,9 +31,10 @@ public class ServerThread implements Runnable {
         return clientNumber;
     }
 
-    public ServerThread(Socket socketOfServer, int clientNumber) {
+    public ServerThread(Socket socketOfServer, int clientNumber, JTextArea jTextArea)  {
         this.socketOfServer = socketOfServer;
         this.clientNumber = clientNumber;
+        jTextarea = jTextArea;
         System.out.println("Server thread number " + clientNumber + " Started");
         isClosed = false;
     }
@@ -56,12 +60,19 @@ public class ServerThread implements Runnable {
                 do {
                     receivedMessage = br.readLine();
                     System.out.println("Received : " + receivedMessage);
+                    String finalReceivedMessage = receivedMessage;
+                    SwingUtilities.invokeAndWait(new Runnable(){
+                        public void run()
+                        {
+                            jTextarea.append("\n"+ finalReceivedMessage);
+                        }
+                    });
                     if (receivedMessage.equalsIgnoreCase("quit")) {
                         System.out.println("Client has left !");
                         break;
                     } else {
                         DataInputStream din = new DataInputStream(System.in);
-                        String k = din.readLine();
+                        String k = "";//din.readLine();
                         bw.write(k);
                         bw.newLine();
                         bw.flush();
@@ -73,7 +84,7 @@ public class ServerThread implements Runnable {
             }
             while (true);
 
-        } catch (IOException ex) {
+        } catch (IOException | InterruptedException | InvocationTargetException ex) {
             System.out.println("There're some error");
         }
     }

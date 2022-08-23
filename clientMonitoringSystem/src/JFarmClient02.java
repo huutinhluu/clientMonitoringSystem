@@ -6,6 +6,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.net.InetAddress;
 import java.net.Socket;
 
 public class JFarmClient02 {
@@ -25,11 +26,11 @@ public class JFarmClient02 {
             String receivedMessage;
 
             System.out.println("Talking to Server");
-
+            System.out.println(InetAddress.getLocalHost().getHostAddress());
             do
             {
                 DataInputStream din=new DataInputStream(System.in);
-                sentMessage="Client2" + din.readLine();
+                sentMessage="Client 2 " + din.readLine();
                 bw.write(sentMessage);
                 bw.newLine();
                 bw.flush();
