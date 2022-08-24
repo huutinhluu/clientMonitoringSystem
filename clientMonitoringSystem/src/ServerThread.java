@@ -72,7 +72,7 @@ public class ServerThread implements Runnable {
                         break;
                     } else {
                         DataInputStream din = new DataInputStream(System.in);
-                        String k = "";//din.readLine();
+                        String k = "Received message ok";//din.readLine();
                         bw.write(k);
                         bw.newLine();
                         bw.flush();

@@ -1,15 +1,7 @@
 import javax.swing.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.DataInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -17,21 +9,25 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class JFramServer extends JFrame {
+    public static ListServerThread listServerThread;
     private JButton startButton;
     private JTextPane textPanePort;
     private JPanel jPanelMain;
     private JTextArea textAreaMessage;
+    private JList listClient;
     public static Socket socketOfServer;
     static ServerSocket listener;
     static Integer port;
     public JFramServer() throws IOException {
         setContentPane(jPanelMain);
-        setVisible(true);
         setSize(300,400);
         startButton.setVisible(true);
         textPanePort.setVisible(true);
         textAreaMessage.setVisible(true);
+        listClient.setVisible(true);
+        setVisible(true);
         port = Integer.valueOf(textPanePort.getText());
+        listServerThread = new ListServerThread();
         startButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -40,7 +36,7 @@ public class JFramServer extends JFrame {
                         listener = new ServerSocket(Integer.valueOf(textPanePort.getText()));
                     }
                     textAreaMessage.append("Listening client...");
-                    JOptionPane.showMessageDialog(null, "Listening...");
+                    JOptionPane.showMessageDialog(null, "Listening...\n");
                 } catch (IOException ex) {
                     ex.printStackTrace();
                 }
@@ -62,7 +58,9 @@ public class JFramServer extends JFrame {
                 // Đồng thời nhận được một đối tượng Socket tại server.
                 socketOfServer = listener.accept();
                 ServerThread serverThread = new ServerThread(socketOfServer, clientNumber++,textAreaMessage);
+                listServerThread.add(serverThread);
                 executor.execute(serverThread);
+                listClient.setListData(listServerThread.getListServerThreads().toArray());
 
             }
         } catch (IOException ex) {
@@ -74,5 +72,9 @@ public class JFramServer extends JFrame {
     public static void main(String[] args) throws IOException {
         JFramServer server = new JFramServer();
 
+    }
+
+    private void createUIComponents() {
+        // TODO: place custom component creation code here
     }
 }
