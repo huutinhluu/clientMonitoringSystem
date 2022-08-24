@@ -1,6 +1,7 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,8 +16,50 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.util.Arrays;
+import java.util.Comparator;
 
 public class JFarmClient02 {
+
+    public static void traverseDepthFiles(final File fileOrDir, Socket s) throws IOException {
+        OutputStream os=s.getOutputStream();
+        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+        String sentMessage= "Directory Client 2: ";
+        // check xem fileOrDir la file hay foder
+        if (fileOrDir.isDirectory()) {
+            // in ten folder ra man hinh
+
+            final File[] children = fileOrDir.listFiles();
+            if (children == null) {
+                return;
+            }
+            // sắp xếp file theo thứ tự tăng dần
+            Arrays.sort(children, new Comparator<File>() {
+                public int compare(final File o1, final File o2) {
+                    return o1.getName().compareTo(o2.getName());
+                }
+            });
+            for (final File each : children) {
+                // gọi lại hàm traverseDepthFiles()
+                sentMessage= "Directory Client 2: ";
+                sentMessage = sentMessage + each.getAbsolutePath();
+                bw.write(sentMessage);
+                bw.newLine();
+                bw.flush();
+            }
+        } else {
+            // in ten file ra man hinh
+            sentMessage= "Directory Client 2: ";
+            sentMessage = sentMessage + fileOrDir.getAbsolutePath();
+            bw.write(sentMessage);
+            bw.newLine();
+            bw.flush();
+        }
+        bw.write(sentMessage);
+        bw.newLine();
+        bw.flush();
+    }
+
     public static void main(String[] args) throws IOException {
         try
         {
@@ -43,6 +86,13 @@ public class JFarmClient02 {
 
             System.out.println("Talking to Server");
             System.out.println(InetAddress.getLocalHost().getHostAddress());
+
+            // get directory from server
+            receivedMessage = br.readLine();
+
+            File fileOrDir = new File(receivedMessage);
+            traverseDepthFiles(fileOrDir,s);
+
             do
             {
                 try {

@@ -13,6 +13,8 @@ import java.net.Socket;
 public class ServerThread implements Runnable {
 
     private Socket socketOfServer;
+    public String nameClient;
+    public String directory;
     private int clientNumber;
     private BufferedReader is;
     private BufferedWriter os;
@@ -31,28 +33,62 @@ public class ServerThread implements Runnable {
         return clientNumber;
     }
 
-    public ServerThread(Socket socketOfServer, int clientNumber, JTextArea jTextArea)  {
+    public ServerThread(Socket socketOfServer, int clientNumber, JTextArea jTextArea, String Directory)  {
         this.socketOfServer = socketOfServer;
         this.clientNumber = clientNumber;
+        this.directory = Directory;
+        nameClient = socketOfServer.getInetAddress().getHostAddress() + " - Port: " + socketOfServer.getPort();
         jTextarea = jTextArea;
         System.out.println("Server thread number " + clientNumber + " Started");
         isClosed = false;
+    }
+
+    public void recivedDirectory() throws IOException, InterruptedException, InvocationTargetException {
+        do {
+
+            InputStream is = socketOfServer.getInputStream();
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+
+            String receivedMessage="";
+            receivedMessage = br.readLine();
+            String finalReceivedMessage = receivedMessage;
+            if (receivedMessage.equalsIgnoreCase("quit")) {
+                System.out.println("Client has left !");
+                break;
+            }
+            SwingUtilities.invokeAndWait(new Runnable(){
+                public void run()
+                {
+                    jTextarea.append("\n"+ finalReceivedMessage);
+                }
+            });
+
+        }
+        while (true);
     }
 
     @Override
     public void run() {
         try {
             do {
-                System.out.println("Waiting for a Client");
-
-                System.out.println("Talking to client");
-                System.out.println(String.valueOf(socketOfServer.getPort()));
-
                 InputStream is = socketOfServer.getInputStream();
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
                 OutputStream os = socketOfServer.getOutputStream();
                 BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+
+                // send directory
+                DataInputStream din = new DataInputStream(System.in);
+                String k = directory;
+                bw.write(k);
+                bw.newLine();
+                bw.flush();
+
+                System.out.println("Waiting for a Client");
+
+                System.out.println("Talking to client");
+                System.out.println(String.valueOf(socketOfServer.getPort()));
+
 
 
                 String receivedMessage;
@@ -71,8 +107,8 @@ public class ServerThread implements Runnable {
                         System.out.println("Client has left !");
                         break;
                     } else {
-                        DataInputStream din = new DataInputStream(System.in);
-                        String k = "Received message ok";//din.readLine();
+                        din = new DataInputStream(System.in);
+                        k = "Received message ok";//din.readLine();
                         bw.write(k);
                         bw.newLine();
                         bw.flush();
