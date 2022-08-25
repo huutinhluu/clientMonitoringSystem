@@ -111,7 +111,9 @@
         <children>
           <component id="4a518" class="javax.swing.JTextArea" binding="textArea">
             <constraints/>
-            <properties/>
+            <properties>
+              <text value=""/>
+            </properties>
           </component>
         </children>
       </scrollpane>

@@ -39,7 +39,7 @@ public class JFarmClient extends JFrame {
     public static String outputFile = current + "\\logFileClient01.txt";
     public JFarmClient() throws IOException  {
         setContentPane(jpanelMain);
-        setSize(500,400);
+        setSize(600,400);
         setVisible(true);
 
         DefaultTableModel model = (DefaultTableModel) tableLog.getModel();

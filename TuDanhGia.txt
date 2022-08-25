@@ -1,0 +1,18 @@
+Link git 
+https://github.com/huutinhluu/clientMonitoringSystem.git
+
+Link youtube:
+https://youtu.be/I98qX2-aEvo
+
+Tự đánh giá chức năng
+1. Server start listen port 5đ
+2. Client connect 5đ
+3. List Client 5đ
+4. Directory monitor 5đ
+5. Browse directory monitor 10đ
+6. Monitor log 20đ
+7. Show log in JTable 10đ
+8. Save log in server 10đ
+9. Save log in client 10đ
+
+Tổng điểm tự đánh giá: 80

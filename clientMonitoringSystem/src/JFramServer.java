@@ -36,7 +36,7 @@ public class JFramServer extends JFrame {
     public JFramServer() throws IOException {
         listThread = new ArrayList<>();
         setContentPane(jPanelMain);
-        setSize(700,400);
+        setSize(900,400);
         startButton.setVisible(true);
         textPanePort.setVisible(true);
         checkLogButton.setVisible(true);

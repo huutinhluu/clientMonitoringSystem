@@ -41,7 +41,7 @@ public class JFarmClient02 extends JFrame {
     public JFarmClient02() {
         setContentPane(panel1);
         setVisible(true);
-        setSize(300,400);
+        setSize(600,400);
 
         DefaultTableModel model = (DefaultTableModel) tableLog.getModel();
         model.addColumn("STT");
