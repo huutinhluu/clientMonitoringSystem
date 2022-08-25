@@ -22,12 +22,19 @@ import java.nio.file.WatchService;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class JFarmClient {
+public class JFarmClient extends JFrame {
+    private JPanel jpanelMain;
     private JTextField textFieldPort;
     private JButton connectButton;
+    private JTextArea textAreaLog;
     public static Integer port = 3200;
     public static Socket s;
-    public JFarmClient() {
+
+    public JFarmClient() throws IOException  {
+        setContentPane(jpanelMain);
+        setSize(500,400);
+        setVisible(true);
+
         connectButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -81,92 +88,103 @@ public class JFarmClient {
     }
 
     public static void main(String[] args) throws IOException {
-        try
-        {
-            Socket s = new Socket("localhost",3200);
-            System.out.println(s.getPort());
+        JFarmClient clien = new JFarmClient();
+//        try
+//        {
+//            Socket s = new Socket("localhost",3200);
+//            System.out.println(s.getPort());
+//
+//            InputStream is=s.getInputStream();
+//            BufferedReader br=new BufferedReader(new InputStreamReader(is));
+//
+//            OutputStream os=s.getOutputStream();
+//            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
+//
+//            String sentMessage="";
+//            String receivedMessage;
+//
+//
+//
+//            System.out.println("Talking to Server");
+//            System.out.println(InetAddress.getLocalHost().getHostAddress());
+//
+//            // get directory from server
+//            receivedMessage = br.readLine();
+//
+//            File fileOrDir = new File(receivedMessage);
+//
+//            WatchService watcher = FileSystems.getDefault().newWatchService();
+//            Path dir = Paths.get("D:/");
+//            dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE,
+//                    StandardWatchEventKinds.ENTRY_MODIFY);
+//
+//            System.out.println("Watch Service registered for dir: " + dir.getFileName());
+//
+//            WatchKey key = null;
+//
+//            traverseDepthFiles(fileOrDir,s);
+//
+//            do
+//            {
+//                try {
+//                    System.out.println("Waiting for key to be signalled...");
+//                    key = watcher.take();
+//                } catch (InterruptedException ex) {
+//                    System.out.println("InterruptedException: " + ex.getMessage());
+//                    return;
+//                }
+//
+//                DataInputStream din=new DataInputStream(System.in);
+//                sentMessage="Client 1: ";
+//
+//                for (WatchEvent<?> event : key.pollEvents()) {
+//                    // Retrieve the type of event by using the kind() method.
+//                    WatchEvent.Kind<?> kind = event.kind();
+//                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
+//                    Path fileName = ev.context();
+//                    if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
+//                        sentMessage = sentMessage + "A new file " + fileName.getFileName() + " was created.\n" ;
+//                        System.out.println("A new file %s was created.%n" + fileName.getFileName());
+//                    } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
+//                        sentMessage = sentMessage +  "A file " + fileName.getFileName() + "  was modified.\n";
+//                        System.out.println("A file %s was modified.%n" + fileName.getFileName());
+//                    } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
+//                        sentMessage = sentMessage +  "A file " + fileName.getFileName() + "  was deleted.%\n" ;
+//                    }
+//                }
+//                bw.write(sentMessage);
+//                bw.newLine();
+//                bw.flush();
+//
+//                if (sentMessage.equalsIgnoreCase("quit"))
+//                    break;
+//                else
+//                {
+//                    receivedMessage=br.readLine();
+//                    System.out.println("Received : " + receivedMessage);
+//                }
+//
+//                boolean valid = key.reset();
+//                if (!valid) {
+//                    break;
+//                }
+//
+//            }
+//            while(true);
+//
+//            bw.close();
+//            br.close();
+//        }
+//        catch(IOException e)
+//        {
+//            System.out.println("There're some error");
+//        }
+    }
 
-            InputStream is=s.getInputStream();
-            BufferedReader br=new BufferedReader(new InputStreamReader(is));
-
-            OutputStream os=s.getOutputStream();
-            BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-
-            String sentMessage="";
-            String receivedMessage;
-
-            WatchService watcher = FileSystems.getDefault().newWatchService();
-            Path dir = Paths.get("D:/");
-            dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE,
-                    StandardWatchEventKinds.ENTRY_MODIFY);
-
-            System.out.println("Watch Service registered for dir: " + dir.getFileName());
-
-            WatchKey key = null;
-
-            System.out.println("Talking to Server");
-            System.out.println(InetAddress.getLocalHost().getHostAddress());
-
-            // get directory from server
-            receivedMessage = br.readLine();
-
-            File fileOrDir = new File(receivedMessage);
-            traverseDepthFiles(fileOrDir,s);
-
-            do
-            {
-                try {
-                    System.out.println("Waiting for key to be signalled...");
-                    key = watcher.take();
-                } catch (InterruptedException ex) {
-                    System.out.println("InterruptedException: " + ex.getMessage());
-                    return;
-                }
-
-                DataInputStream din=new DataInputStream(System.in);
-                sentMessage="Client 1: ";
-
-                for (WatchEvent<?> event : key.pollEvents()) {
-                    // Retrieve the type of event by using the kind() method.
-                    WatchEvent.Kind<?> kind = event.kind();
-                    WatchEvent<Path> ev = (WatchEvent<Path>) event;
-                    Path fileName = ev.context();
-                    if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                        sentMessage = sentMessage + "A new file " + fileName.getFileName() + " was created.\n" ;
-                        System.out.println("A new file %s was created.%n" + fileName.getFileName());
-                    } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                        sentMessage = sentMessage +  "A file " + fileName.getFileName() + "  was modified.\n";
-                        System.out.println("A file %s was modified.%n" + fileName.getFileName());
-                    } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                        sentMessage = sentMessage +  "A file " + fileName.getFileName() + "  was deleted.%\n" ;
-                    }
-                }
-                bw.write(sentMessage);
-                bw.newLine();
-                bw.flush();
-
-                if (sentMessage.equalsIgnoreCase("quit"))
-                    break;
-                else
-                {
-                    receivedMessage=br.readLine();
-                    System.out.println("Received : " + receivedMessage);
-                }
-
-                boolean valid = key.reset();
-                if (!valid) {
-                    break;
-                }
-
-            }
-            while(true);
-
-            bw.close();
-            br.close();
-        }
-        catch(IOException e)
-        {
-            System.out.println("There're some error");
-        }
+    private void createUIComponents() {
+        jpanelMain = new JPanel();
+        setContentPane(jpanelMain);
+        setSize(500,400);
+        setVisible(true);
     }
 }

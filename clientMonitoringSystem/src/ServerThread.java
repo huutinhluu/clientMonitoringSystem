@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -9,17 +10,23 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.lang.reflect.InvocationTargetException;
 import java.net.Socket;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ServerThread implements Runnable {
 
     private Socket socketOfServer;
     public String nameClient;
     public String directory;
+    public List<LogClient> listLogClient;
     private int clientNumber;
     private BufferedReader is;
     private BufferedWriter os;
     private boolean isClosed;
     public static JTextArea jTextarea;
+    public static JTable jTableLogServer;
 
     public BufferedReader getIs() {
         return is;
@@ -33,12 +40,15 @@ public class ServerThread implements Runnable {
         return clientNumber;
     }
 
-    public ServerThread(Socket socketOfServer, int clientNumber, JTextArea jTextArea, String Directory)  {
+    public ServerThread(Socket socketOfServer, int clientNumber, JTable jTableLog, String Directory, JTextArea jtext)  {
+        listLogClient = new ArrayList<>();
         this.socketOfServer = socketOfServer;
         this.clientNumber = clientNumber;
         this.directory = Directory;
+        this.jTableLogServer = jTableLog;
+        this.jTextarea = jtext;
         nameClient = socketOfServer.getInetAddress().getHostAddress() + " - Port: " + socketOfServer.getPort();
-        jTextarea = jTextArea;
+
         System.out.println("Server thread number " + clientNumber + " Started");
         isClosed = false;
     }
@@ -94,15 +104,41 @@ public class ServerThread implements Runnable {
                 String receivedMessage;
 
                 do {
-                    receivedMessage = br.readLine();
-                    System.out.println("Received : " + receivedMessage);
-                    String finalReceivedMessage = receivedMessage;
-                    SwingUtilities.invokeAndWait(new Runnable(){
-                        public void run()
-                        {
-                            jTextarea.append("\n"+ finalReceivedMessage);
-                        }
-                    });
+                    receivedMessage= br.readLine();
+
+                    if(receivedMessage.contains("Directory Client")) {
+                        String finalReceivedMessage1 = receivedMessage;
+                        SwingUtilities.invokeAndWait(new Runnable() {
+                            public void run() {
+                                jTextarea.append("\n" + finalReceivedMessage1);
+                            }
+                        });
+                    }
+                    else if (receivedMessage.contains("ENTRY")) {
+
+                        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+                        LocalDateTime now = LocalDateTime.now();
+
+                        LogClient logClient = new LogClient();
+                        logClient.STT = listLogClient.size() + 1;
+                        logClient.ipClient = nameClient;
+                        logClient.dateTime = dtf.format(now).toString();
+                        logClient.action = receivedMessage.split(",")[0];
+                        logClient.detail = receivedMessage.split(",")[1];
+
+                        listLogClient.add(logClient);
+
+                        System.out.println("Received : " + receivedMessage);
+                        String finalReceivedMessage = receivedMessage;
+                        SwingUtilities.invokeAndWait(new Runnable() {
+                            public void run() {
+                                Object[] row = {logClient.STT, logClient.ipClient,
+                                        logClient.dateTime, logClient.action, logClient.detail};
+                                DefaultTableModel model = (DefaultTableModel) jTableLogServer.getModel();
+                                model.addRow(row);
+                            }
+                        });
+                    }
                     if (receivedMessage.equalsIgnoreCase("quit")) {
                         System.out.println("Client has left !");
                         break;

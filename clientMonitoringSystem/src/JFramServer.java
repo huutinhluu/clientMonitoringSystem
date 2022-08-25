@@ -1,8 +1,8 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.List;
@@ -16,26 +16,41 @@ public class JFramServer extends JFrame {
     private JButton startButton;
     private JTextPane textPanePort;
     private JPanel jPanelMain;
-    private JTextArea textAreaMessage;
     private JList listClient;
     private JTextField textFieldDirectory;
     private JButton checkLogButton;
+    private JTable tableLog;
+    private JTextArea textArea;
+    private JButton saveLogButton;
     public static Socket socketOfServer;
     static ServerSocket listener;
     static Integer port;
     public int clientNumber = 0;
     public JFramServer() throws IOException {
         setContentPane(jPanelMain);
-        setSize(500,400);
+        setSize(700,400);
         startButton.setVisible(true);
         textPanePort.setVisible(true);
-        textAreaMessage.setVisible(true);
         checkLogButton.setVisible(true);
         listClient.setVisible(true);
+        textArea.setVisible(true);
         setVisible(true);
         textFieldDirectory.setVisible(true);
         port = Integer.valueOf(textPanePort.getText());
         listServerThread = new ListServerThread();
+
+
+        DefaultTableModel model = (DefaultTableModel) tableLog.getModel();
+        model.addColumn("STT");
+        model.addColumn("IP Client");
+        model.addColumn("Date time");
+        model.addColumn("Action");
+        model.addColumn("Description");
+
+        Object[] row = { "data1", "data2", "data3", "data4", "data4" };
+        model.addRow(row);
+        tableLog.setVisible(true);
+
 
 
         ThreadPoolExecutor executor = new ThreadPoolExecutor(
@@ -45,13 +60,24 @@ public class JFramServer extends JFrame {
                 TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(8) // queueCapacity
         );
+        ThreadPoolExecutor executor_temp = new ThreadPoolExecutor(
+                10, // corePoolSize
+                100, // maximumPoolSize
+                10, // thread timeout
+                TimeUnit.SECONDS,
+                new ArrayBlockingQueue<>(8) // queueCapacity
+        );
+
 
         checkLogButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
                 ServerThread serverThread = listServerThread.getListServerThreads().get(listClient.getSelectedIndex());
                 serverThread.directory = textFieldDirectory.getText();
-                executor.execute(serverThread);
+                //executor_temp.shutdown();
+                //executor.execute(serverThread);
+                Thread thread = new Thread(serverThread);
+                thread.start();
                 JOptionPane.showMessageDialog(null,
                         "Start check log real time to " + listClient.getSelectedValue());
             }
@@ -76,9 +102,10 @@ public class JFramServer extends JFrame {
                 // Chấp nhận một yêu cầu kết nối từ phía Client.
                 // Đồng thời nhận được một đối tượng Socket tại server.
                 socketOfServer = listener.accept();
-                ServerThread serverThread = new ServerThread(socketOfServer, clientNumber++,textAreaMessage, textFieldDirectory.getText());
+                ServerThread serverThread = new ServerThread(socketOfServer, clientNumber++,
+                        tableLog, textFieldDirectory.getText(),textArea );
                 listServerThread.add(serverThread);
-                //executor.execute(serverThread);
+                //executor_temp.execute(serverThread_temp);
                 List<String> listNameServer = listServerThread.getListServerThreads().stream()
                         .map(server -> server.nameClient)
                         .collect(Collectors.toList());
@@ -88,6 +115,12 @@ public class JFramServer extends JFrame {
         } catch (IOException ex) {
             ex.printStackTrace();
         }
+        saveLogButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                
+            }
+        });
     }
 
 

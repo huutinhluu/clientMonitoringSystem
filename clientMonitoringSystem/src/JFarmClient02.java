@@ -1,3 +1,4 @@
+import javax.swing.*;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
@@ -19,7 +20,15 @@ import java.nio.file.WatchService;
 import java.util.Arrays;
 import java.util.Comparator;
 
-public class JFarmClient02 {
+public class JFarmClient02 extends JFrame {
+
+    private JPanel panel1;
+
+    public JFarmClient02() {
+        setContentPane(panel1);
+        setVisible(true);
+        setSize(300,400);
+    }
 
     public static void traverseDepthFiles(final File fileOrDir, Socket s) throws IOException {
         OutputStream os=s.getOutputStream();
@@ -61,6 +70,7 @@ public class JFarmClient02 {
     }
 
     public static void main(String[] args) throws IOException {
+        //JFarmClient02 test = new JFarmClient02();
         try
         {
             Socket s = new Socket("localhost",3200);
@@ -75,6 +85,14 @@ public class JFarmClient02 {
             String sentMessage="";
             String receivedMessage;
 
+            System.out.println("Talking to Server");
+            System.out.println(InetAddress.getLocalHost().getHostAddress());
+
+            // get directory from server
+            receivedMessage = br.readLine();
+
+            File fileOrDir = new File(receivedMessage);
+
             WatchService watcher = FileSystems.getDefault().newWatchService();
             Path dir = Paths.get("D:/");
             dir.register(watcher, StandardWatchEventKinds.ENTRY_CREATE, StandardWatchEventKinds.ENTRY_DELETE,
@@ -84,13 +102,6 @@ public class JFarmClient02 {
 
             WatchKey key = null;
 
-            System.out.println("Talking to Server");
-            System.out.println(InetAddress.getLocalHost().getHostAddress());
-
-            // get directory from server
-            receivedMessage = br.readLine();
-
-            File fileOrDir = new File(receivedMessage);
             traverseDepthFiles(fileOrDir,s);
 
             do
@@ -104,7 +115,7 @@ public class JFarmClient02 {
                 }
 
                 DataInputStream din=new DataInputStream(System.in);
-                sentMessage="Client 2: ";
+                sentMessage="";
 
                 for (WatchEvent<?> event : key.pollEvents()) {
                     // Retrieve the type of event by using the kind() method.
@@ -112,26 +123,27 @@ public class JFarmClient02 {
                     WatchEvent<Path> ev = (WatchEvent<Path>) event;
                     Path fileName = ev.context();
                     if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
-                        sentMessage = sentMessage + "A new file " + fileName.getFileName() + " was created.\n" ;
+                        sentMessage = sentMessage + "ENTRY_CREATE,A new file " + fileName.getFileName() + " was created.\n" ;
                         System.out.println("A new file %s was created.%n" + fileName.getFileName());
                     } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
-                        sentMessage = sentMessage +  "A file " + fileName.getFileName() + "  was modified.\n";
+                        sentMessage = sentMessage +  "ENTRY_MODIFY,A file " + fileName.getFileName() + "  was modified.\n";
                         System.out.println("A file %s was modified.%n" + fileName.getFileName());
                     } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
-                        sentMessage = sentMessage +  "A file " + fileName.getFileName() + "  was deleted.%\n" ;
+                        sentMessage = sentMessage +  "ENTRY_DELETE,A file " + fileName.getFileName() + "  was deleted.\n" ;
                     }
+                    bw.write(sentMessage);
+                    bw.newLine();
+                    bw.flush();
                 }
-                bw.write(sentMessage);
-                bw.newLine();
-                bw.flush();
+
 
                 if (sentMessage.equalsIgnoreCase("quit"))
                     break;
-                else
-                {
-                    receivedMessage=br.readLine();
-                    System.out.println("Received : " + receivedMessage);
-                }
+//                else
+//                {
+//                    receivedMessage=br.readLine();
+//                    System.out.println("Received : " + receivedMessage);
+//                }
 
                 boolean valid = key.reset();
                 if (!valid) {
