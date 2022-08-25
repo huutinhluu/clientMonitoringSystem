@@ -109,7 +109,10 @@ public class JFramServer extends JFrame {
                     } catch (IOException ex){
 
                 }
+                JOptionPane.showMessageDialog(null,
+                        "Save log OK, address: " + outputFile);
             }
+
 
         });
 

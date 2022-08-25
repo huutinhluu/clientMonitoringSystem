@@ -1,8 +1,12 @@
 import javax.swing.*;
+import javax.swing.table.DefaultTableModel;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.DataInputStream;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,17 +21,88 @@ import java.nio.file.StandardWatchEventKinds;
 import java.nio.file.WatchEvent;
 import java.nio.file.WatchKey;
 import java.nio.file.WatchService;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.Comparator;
 
 public class JFarmClient02 extends JFrame {
 
     private JPanel panel1;
-
+    private JTextField textFieldPort;
+    private JButton connectButton;
+    private JTable tableLog;
+    private JButton saveLogButton;
+    public static Integer port = 3200;
+    public static Socket s;
+    public static Integer countLog = 0;
+    static String current = System.getProperty("user.dir");
+    public static String outputFile = current + "\\logFileClient02.txt";
     public JFarmClient02() {
         setContentPane(panel1);
         setVisible(true);
         setSize(300,400);
+
+        DefaultTableModel model = (DefaultTableModel) tableLog.getModel();
+        model.addColumn("STT");
+        model.addColumn("Date time");
+        model.addColumn("Action");
+        model.addColumn("Description");
+        tableLog.setVisible(true);
+
+        saveLogButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                DefaultTableModel model = (DefaultTableModel) tableLog.getModel();
+                String data = "";
+                for (int count = 0; count < model.getRowCount(); count++) {
+                    data = data + model.getValueAt(count, 1).toString() + " / ";
+                    data = data + model.getValueAt(count, 2).toString() + " / ";
+                    data = data + model.getValueAt(count, 3).toString() + "\n";
+                }
+
+                try {
+                    File file = new File(outputFile);
+
+                    /* This logic is to create the file if the
+                     * file is not already present
+                     */
+                    if (!file.exists()) {
+                        file.createNewFile();
+                    }
+                    //Here true is to append the content to file
+                    FileWriter fw = new FileWriter(file, true);
+                    //BufferedWriter writer give better performance
+                    BufferedWriter bw = new BufferedWriter(fw);
+                    bw.write(data);
+                    //Closing BufferedWriter Stream
+                    bw.close();
+                } catch (IOException ex){
+
+                }
+                JOptionPane.showMessageDialog(null,
+                        "Save log OK, address: " + outputFile);
+            }
+
+
+        });
+
+        connectButton.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+//                port = Integer.valueOf(textFieldPort.getText());
+//                if(s == null || !s.isConnected()) {
+//                    try {
+//                        s = new Socket("localhost", port);
+//
+//                    } catch (IOException ex) {
+//                        ex.printStackTrace();
+//                    }
+//                }
+                JOptionPane.showMessageDialog(null,
+                        "Connected to server");
+            }
+        });
     }
 
     public static void traverseDepthFiles(final File fileOrDir, Socket s) throws IOException {
@@ -64,13 +139,14 @@ public class JFarmClient02 extends JFrame {
             bw.newLine();
             bw.flush();
         }
+        sentMessage="-------------------------\n";
         bw.write(sentMessage);
         bw.newLine();
         bw.flush();
     }
 
     public static void main(String[] args) throws IOException {
-        //JFarmClient02 test = new JFarmClient02();
+        JFarmClient02 client2 = new JFarmClient02();
         try
         {
             Socket s = new Socket("localhost",3200);
@@ -122,14 +198,29 @@ public class JFarmClient02 extends JFrame {
                     WatchEvent.Kind<?> kind = event.kind();
                     WatchEvent<Path> ev = (WatchEvent<Path>) event;
                     Path fileName = ev.context();
+
+                    countLog ++;
+                    DateTimeFormatter dtf = DateTimeFormatter.ofPattern("yyyy/MM/dd HH:mm:ss");
+                    LocalDateTime now = LocalDateTime.now();
+
                     if (kind == StandardWatchEventKinds.ENTRY_CREATE) {
                         sentMessage = sentMessage + "ENTRY_CREATE,A new file " + fileName.getFileName() + " was created.\n" ;
-                        System.out.println("A new file %s was created.%n" + fileName.getFileName());
+                        Object[] row = {countLog, dtf.format(now).toString(),
+                                "ENTRY_CREATE", "A new file " + fileName.getFileName() + " was created"};
+                        DefaultTableModel model = (DefaultTableModel) client2.tableLog.getModel();
+                        model.addRow(row);
                     } else if (kind == StandardWatchEventKinds.ENTRY_MODIFY) {
                         sentMessage = sentMessage +  "ENTRY_MODIFY,A file " + fileName.getFileName() + "  was modified.\n";
-                        System.out.println("A file %s was modified.%n" + fileName.getFileName());
+                        Object[] row = {countLog, dtf.format(now).toString(),
+                                "ENTRY_MODIFY",  "A file " + fileName.getFileName() + "  was modified"};
+                        DefaultTableModel model = (DefaultTableModel) client2.tableLog.getModel();
+                        model.addRow(row);
                     } else if (kind == StandardWatchEventKinds.ENTRY_DELETE) {
                         sentMessage = sentMessage +  "ENTRY_DELETE,A file " + fileName.getFileName() + "  was deleted.\n" ;
+                        Object[] row = {countLog, dtf.format(now).toString(),
+                                "ENTRY_DELETE",  "A file " + fileName.getFileName() + "  was deleted"};
+                        DefaultTableModel model = (DefaultTableModel) client2.tableLog.getModel();
+                        model.addRow(row);
                     }
                     bw.write(sentMessage);
                     bw.newLine();
