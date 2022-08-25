@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 public class JFramServer extends JFrame {
+    public static List<Thread> listThread;
     public static ListServerThread listServerThread;
     private JButton startButton;
     private JTextPane textPanePort;
@@ -33,6 +34,7 @@ public class JFramServer extends JFrame {
     static String current = System.getProperty("user.dir");
     public static String outputFile = current + "\\logFile.txt";
     public JFramServer() throws IOException {
+        listThread = new ArrayList<>();
         setContentPane(jPanelMain);
         setSize(700,400);
         startButton.setVisible(true);
@@ -69,10 +71,17 @@ public class JFramServer extends JFrame {
         checkLogButton.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
+                textArea.append("=================\n");
+                for (Thread serverThread : listThread){
+                    if(serverThread.isAlive()){
+                        serverThread.stop();
+                    }
+                }
                 ServerThread serverThread = listServerThread.getListServerThreads().get(listClient.getSelectedIndex());
                 serverThread.directory = textFieldDirectory.getText();
                 Thread thread = new Thread(serverThread);
                 thread.start();
+                listThread.add(thread);
                 JOptionPane.showMessageDialog(null,
                         "Start check log real time to " + listClient.getSelectedValue());
             }

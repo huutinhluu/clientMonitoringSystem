@@ -21,6 +21,7 @@ public class ServerThread implements Runnable {
     public String nameClient;
     public String directory;
     public List<LogClient> listLogClient;
+    public Boolean run = false;
     private int clientNumber;
     private BufferedReader is;
     private BufferedWriter os;
@@ -81,6 +82,7 @@ public class ServerThread implements Runnable {
     public void run() {
         try {
             do {
+                this.run = true;
                 InputStream is = socketOfServer.getInputStream();
                 BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
