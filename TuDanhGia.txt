@@ -14,5 +14,5 @@ Tự đánh giá chức năng
 7. Show log in JTable 10đ
 8. Save log in server 10đ
 9. Save log in client 10đ
-
+test update file
 Tổng điểm tự đánh giá: 80
